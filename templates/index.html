@@ -1,36 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Streamer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>YouTube Streamer</h1>
-        <p>Video File: {{ video_path }}</p>
-        <p>FFmpeg Status: {% if ffmpeg_installed %}Installed{% else %}Not Installed{% endif %}</p>
-        <button id="startStream" {% if not ffmpeg_installed %}disabled{% endif %}>Start Streaming</button>
-        <button id="stopStream" {% if not ffmpeg_installed %}disabled{% endif %}>Stop Streaming</button>
-        <p id="status"></p>
-    </div>
-    <script>
-        document.getElementById('startStream').addEventListener('click', function() {
-            fetch('/start_stream', {method: 'POST'})
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('status').textContent = data.message;
-                });
-        });
+<input type="text" id="videoUrl" placeholder="Enter video URL">
+<button onclick="startStream()">Start Stream</button>
+<button onclick="stopStream()">Stop Stream</button>
 
-        document.getElementById('stopStream').addEventListener('click', function() {
-            fetch('/stop_stream', {method: 'POST'})
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('status').textContent = data.message;
-                });
-        });
-    </script>
-</body>
-</html>
+<script>
+function startStream() {
+    const url = document.getElementById('videoUrl').value;
+    fetch('/start_stream', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({url: url}),
+    })
+    .then(response => response.json())
+    .then(data => console.log(data));
+}
+
+function stopStream() {
+    fetch('/stop_stream', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => console.log(data));
+}
+</script>
