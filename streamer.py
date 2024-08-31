@@ -3,6 +3,7 @@ import os
 import subprocess
 import shlex
 import configparser
+from typing import Dict, Any
 
 def check_ffmpeg():
     try:
@@ -28,20 +29,19 @@ def get_config():
     logging.debug(f"Stream section: {dict(config['Stream'])}")
     return config
 
-def start_streaming(video_file):
-    try:
-        config = get_config()
-        stream_url = config['Stream']['url']
-        stream_key = config['Stream']['key']
-    except (FileNotFoundError, KeyError) as e:
-        raise Exception(f"Configuration error: {str(e)}")
+def start_streaming(stream_config: Dict[str, Any]):
+    video_file = stream_config['video_file']
+    audio_file = stream_config['audio_file']
+    stream_url = stream_config['stream_url']
+    stream_key = stream_config['stream_key']
 
-    audio_file = "/Users/rakeshgangwar/SuperJackfruitLabs/youtube_streamer/youtube_streamer/media/audio.mp3"
-    video_file = "/Users/rakeshgangwar/SuperJackfruitLabs/youtube_streamer/youtube_streamer/media/sample.mp4"
-    
     if not os.path.exists(audio_file):
         logging.error(f"Audio file not found: {audio_file}")
         raise FileNotFoundError(f"Audio file not found: {audio_file}")
+
+    if not os.path.exists(video_file):
+        logging.error(f"Video file not found: {video_file}")
+        raise FileNotFoundError(f"Video file not found: {video_file}")
 
     command = (
         f"ffmpeg -stream_loop -1 -re -i {video_file} "

@@ -1,24 +1,85 @@
-<input type="text" id="videoUrl" placeholder="Enter video URL">
-<button onclick="startStream()">Start Stream</button>
-<button onclick="stopStream()">Stop Stream</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Streamer</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>YouTube Streamer</h1>
+    <div id="stream-form">
+        <input type="text" id="streamId" placeholder="Enter stream ID">
+        <input type="text" id="videoFile" placeholder="Enter video file path">
+        <input type="text" id="audioFile" placeholder="Enter audio file path">
+        <input type="text" id="streamUrl" placeholder="Enter RTMP URL">
+        <input type="text" id="streamKey" placeholder="Enter stream key">
+        <button onclick="startStream()">Start Stream</button>
+    </div>
+    <div id="stream-list">
+        <h2>Active Streams</h2>
+        <ul id="active-streams"></ul>
+    </div>
 
-<script>
-function startStream() {
-    const url = document.getElementById('videoUrl').value;
-    fetch('/start_stream', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({url: url}),
-    })
-    .then(response => response.json())
-    .then(data => console.log(data));
-}
+    <script>
+    function startStream() {
+        const streamId = $('#streamId').val();
+        const videoFile = $('#videoFile').val();
+        const audioFile = $('#audioFile').val();
+        const streamUrl = $('#streamUrl').val();
+        const streamKey = $('#streamKey').val();
 
-function stopStream() {
-    fetch('/stop_stream', {method: 'POST'})
-    .then(response => response.json())
-    .then(data => console.log(data));
-}
-</script>
+        fetch('/start_stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                stream_id: streamId,
+                video_file: videoFile,
+                audio_file: audioFile,
+                stream_url: streamUrl,
+                stream_key: streamKey
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            updateStreamList();
+        });
+    }
+
+    function stopStream(streamId) {
+        fetch('/stop_stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({stream_id: streamId}),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            updateStreamList();
+        });
+    }
+
+    function updateStreamList() {
+        fetch('/list_streams')
+        .then(response => response.json())
+        .then(data => {
+            const streamList = $('#active-streams');
+            streamList.empty();
+            data.streams.forEach(streamId => {
+                streamList.append(`<li>${streamId} <button onclick="stopStream('${streamId}')">Stop</button></li>`);
+            });
+        });
+    }
+
+    // Update stream list on page load
+    $(document).ready(function() {
+        updateStreamList();
+    });
+    </script>
+</body>
+</html>
